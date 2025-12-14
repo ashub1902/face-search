@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-numpy
-opencv-python
-insightface
-onnxruntime==1.16.1
-python-multipart
-scikit-learn
