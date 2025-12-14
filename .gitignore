@@ -1,0 +1,13 @@
+# Ignore virtual environments
+venv/
+.venv/
+backend/venv/
+backend/.venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+requirements.txt
