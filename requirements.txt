@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+numpy==1.26.4
+opencv-python
+insightface==0.7.3
+onnxruntime==1.16.1
+pillow
+pillow-heif
