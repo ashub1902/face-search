@@ -32,9 +32,18 @@ app.add_middleware(
 # ----------------------------
 # LOAD FACE MODEL
 # ----------------------------
+os.environ["ORT_LOGGING_LEVEL"] = "ERROR"
+os.environ["OMP_NUM_THREADS"] = "1"
 
-model = insightface.app.FaceAnalysis()
-model.prepare(ctx_id=-1)  # CPU
+model = insightface.app.FaceAnalysis(
+    name="buffalo_l",
+    allowed_modules=["detection", "recognition"]
+)
+
+model.prepare(
+    ctx_id=-1,
+    det_size=(320, 320)   # smaller = MUCH less memory
+)
 
 # ----------------------------
 # LOAD DATABASE INTO MEMORY
@@ -79,16 +88,30 @@ def decode_image(img_bytes: bytes):
     # Fast path: OpenCV
     img_array = np.frombuffer(img_bytes, np.uint8)
     img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-    if img is not None:
-        return img
 
-    # Fallback: PIL (universal)
-    try:
-        pil_img = Image.open(io.BytesIO(img_bytes))
-        pil_img = pil_img.convert("RGB")
-        return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
-    except Exception:
-        return None
+    if img is None:
+        # Fallback: PIL (universal)
+        try:
+            pil_img = Image.open(io.BytesIO(img_bytes))
+            pil_img = pil_img.convert("RGB")
+            img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+        except Exception:
+            return None
+
+    # 🔹 MEMORY FIX: downscale large images
+    MAX_SIDE = 1024  # safe for face detection
+    h, w = img.shape[:2]
+    max_dim = max(h, w)
+
+    if max_dim > MAX_SIDE:
+        scale = MAX_SIDE / max_dim
+        img = cv2.resize(
+            img,
+            (int(w * scale), int(h * scale)),
+            interpolation=cv2.INTER_AREA
+        )
+
+    return img
 
 
 @app.post("/search")
