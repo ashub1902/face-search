@@ -133,7 +133,7 @@ async def search_face(file: UploadFile = File(...)):
     # Cosine similarity
     sims = FACE_EMBEDDINGS @ query_emb
 
-    MIN_SCORE = 0.65  # fixed, good default
+    MIN_SCORE = 0.52  # fixed, good default
 
     results = [
         {
